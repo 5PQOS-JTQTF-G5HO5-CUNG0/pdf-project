@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+      - INTERNAL_BACKEND_URL=http://backend:8000/api/:path*
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - GOTENBERG_URL=http://gotenberg:3000
+      - DATA_DIR=/data
+      - MAX_FILE_SIZE_MB=500
+      - CLEANUP_SUCCESS_HOURS=1
+      - CLEANUP_FAILED_HOURS=24
+      - DEFAULT_DPI=300
+    depends_on:
+      - gotenberg
+    restart: unless-stopped
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

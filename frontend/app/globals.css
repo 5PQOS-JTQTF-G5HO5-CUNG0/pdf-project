@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #010102;
+    color: #f7f8f8;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: rgba(94, 106, 210, 0.35);
+    color: #ffffff;
+  }
+}
+
+/* 统一所有下拉窗口四角弧度与按钮一致 (8px) */
+select {
+  border-radius: 8px !important;
+}
+
+/* 优雅暗黑极细滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #23252a;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #34343a;
+}

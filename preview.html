@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalPDF - 本地安全文件转换与 PDF 工具箱</title>
+  <!-- Clean-Figtree-Design-System 字体引入 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #fafafa;
+      --surface-card: #ffffff;
+      --surface-secondary: #f2f2f2;
+      --surface-popover: #ffffff;
+      --foreground: #030303;
+      --muted-foreground: #555555;
+      --primary-foreground: #ffffff;
+      --border: #e4e4e4;
+      --input: #e4e4e4;
+      --ring: #030303;
+      --primary: #030303;
+      --brand-primary: #0a0a0a;
+      --brand-blue: #3476d8;
+      --brand-blue-hover: #2868c7;
+      --brand-yellow: #f8c808;
+      --brand-green: #087868;
+      --destructive: #a83634;
+
+      --radii-sm: 6px;
+      --radii-md: 8px;
+      --radii-lg: 12px;
+      --radii-pill: 9999px;
+
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --transition-spring: all 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Figtree', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    ::selection {
+      background-color: rgba(3, 3, 3, 0.12);
+      color: var(--foreground);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 顶部导航与分段控制器 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .app-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      border-radius: var(--radii-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .title-group h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--foreground);
+    }
+    .title-group p {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      margin-top: 1px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radii-sm);
+      background: rgba(8, 120, 104, 0.08);
+      border: 1px solid rgba(8, 120, 104, 0.2);
+      color: var(--brand-green);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand-green);
+    }
+
+    /* 分段控件 (Segmented Control) */
+    .tab-pills {
+      display: flex;
+      background: var(--surface-secondary);
+      padding: 3px;
+      border-radius: var(--radii-md);
+      border: 1px solid var(--border);
+      gap: 3px;
+    }
+    .tab-pill {
+      border: none;
+      background: transparent;
+      padding: 6px 16px;
+      border-radius: var(--radii-sm);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-spring);
+    }
+    .tab-pill:hover {
+      color: var(--foreground);
+    }
+    .tab-pill.active {
+      background: var(--surface-card);
+      color: var(--foreground);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--border);
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radii-md);
+      border: 1px solid var(--border);
+      background: var(--surface-secondary);
+      color: var(--foreground);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-spring);
+    }
+    .icon-btn:hover {
+      background: #e8e8e8;
+    }
+
+    /* 卡片容器规范 */
+    .card {
+      background: var(--surface-card);
+      border-radius: var(--radii-lg);
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    /* 拖拽上传区 */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radii-md);
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: var(--surface-card);
+      cursor: pointer;
+      transition: var(--transition-spring);
+    }
+    .dropzone:hover {
+      border-color: #888888;
+      background: rgba(242, 242, 242, 0.4);
+    }
+    .upload-icon-box {
+      width: 46px;
+      height: 46px;
+      background: var(--surface-secondary);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+      border-radius: var(--radii-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      transition: var(--transition-spring);
+    }
+    .dropzone:hover .upload-icon-box {
+      border-color: rgba(3, 3, 3, 0.4);
+      background: #e8e8e8;
+    }
+    .drop-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+    .drop-desc {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      margin-bottom: 18px;
+      max-width: 440px;
+      line-height: 1.5;
+    }
+
+    /* 规范按钮体系 */
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border: 1px solid var(--primary);
+      padding: 8px 16px;
+      border-radius: var(--radii-md);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-subtle);
+      transition: var(--transition-spring);
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: var(--surface-secondary);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: var(--radii-md);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-spring);
+    }
+    .btn-secondary:hover {
+      background: #e8e8e8;
+    }
+
+    .btn-success {
+      background: rgba(8, 120, 104, 0.1);
+      color: var(--brand-green);
+      border: 1px solid rgba(8, 120, 104, 0.3);
+      padding: 7px 14px;
+      border-radius: var(--radii-md);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition-spring);
+      text-decoration: none;
+    }
+    .btn-success:hover {
+      background: rgba(8, 120, 104, 0.18);
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--muted-foreground);
+      padding: 6px;
+      border-radius: var(--radii-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-spring);
+    }
+    .btn-delete:hover {
+      color: var(--destructive);
+      background: rgba(168, 54, 52, 0.08);
+    }
+
+    /* 批量操作控制条 */
+    .batch-bar {
+      padding: 12px 18px;
+      border-radius: var(--radii-lg);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-subtle);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* 任务列表 */
+    .list-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .file-item {
+      background: var(--surface-card);
+      border-radius: var(--radii-lg);
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: var(--transition-spring);
+    }
+    .file-item:hover {
+      border-color: #888888;
+      transform: translateY(-1px);
+    }
+    .file-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .file-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radii-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+    }
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .file-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+    .file-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-tag {
+      font-size: 11px;
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      color: var(--muted-foreground);
+      padding: 1px 6px;
+      border-radius: var(--radii-sm);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .file-status-success {
+      font-size: 12px;
+      color: var(--brand-green);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 5px;
+      background: var(--surface-secondary);
+      border-radius: var(--radii-pill);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--foreground);
+      border-radius: var(--radii-pill);
+      width: 72%;
+    }
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .format-picker {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: var(--radii-md);
+      font-size: 12px;
+      transition: var(--transition-spring);
+    }
+    .format-picker:hover {
+      border-color: #888888;
+    }
+    .format-picker select {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--foreground);
+      cursor: pointer;
+      outline: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 底部三列卡片 */
+    .features-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .feature-item {
+      padding: 18px;
+      border-radius: var(--radii-lg);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
+      transition: var(--transition-spring);
+    }
+    .feature-item:hover {
+      border-color: #888888;
+    }
+    .feature-item h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 4px;
+    }
+    .feature-item p {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+    }
+
+    /* PDF 工具箱两列栅格 */
+    .tools-grid-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 18px;
+    }
+    .tools-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tool-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radii-md);
+      border: 1px solid var(--border);
+      background: var(--surface-card);
+      color: var(--muted-foreground);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition-spring);
+    }
+    .tool-tab-btn:hover {
+      background: var(--surface-secondary);
+      color: var(--foreground);
+      border-color: #888888;
+    }
+    .tool-tab-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-subtle);
+    }
+    .tool-detail-box {
+      background: var(--surface-card);
+      border-radius: var(--radii-lg);
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
+    }
+    .form-group-item {
+      margin-bottom: 16px;
+    }
+    .form-item-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 6px;
+    }
+    .form-item-input, .form-item-select {
+      width: 100%;
+      max-width: 420px;
+      padding: 8px 12px;
+      border-radius: var(--radii-md);
+      border: 1px solid var(--input);
+      font-size: 13px;
+      outline: none;
+      background: var(--surface-card);
+      color: var(--foreground);
+      transition: var(--transition-spring);
+    }
+    .form-item-input:focus, .form-item-select:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+    select, input {
+      border-radius: var(--radii-md) !important;
+    }
+
+    /* 弹窗 Popover / Modal */
+    #settings-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface-card);
+      border-radius: var(--radii-lg);
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      animation: modalIn 150ms var(--ease-spring);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted-foreground);
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.75;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- 1. 顶部导航与选项卡切换 -->
+    <header>
+      <div class="header-left">
+        <div class="app-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        </div>
+        <div class="title-group">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h1>LocalPDF 工作站</h1>
+            <span class="status-badge">
+              <span class="status-dot"></span>
+              纯本地零上传
+            </span>
+          </div>
+          <p>Windows Docker 本地隐私转换与 PDF 处理套件</p>
+        </div>
+      </div>
+
+      <!-- 核心 Tab 控制器 (分段控件) -->
+      <div class="tab-pills">
+        <button class="tab-pill active" id="tab-btn-convert" onclick="showTab('convert')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          通用格式转换
+        </button>
+        <button class="tab-pill" id="tab-btn-tools" onclick="showTab('tools')">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+          PDF 专属工具箱 (8项)
+        </button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="status-badge" style="color:var(--foreground); background:var(--surface-secondary); border-color:var(--border);">
+          <span class="status-dot" style="background:var(--brand-green);"></span>
+          <span>Docker 引擎就绪</span>
+        </div>
+        <button class="icon-btn" title="偏好设置" onclick="toggleSettings(true)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 视图 1：通用格式转换 -->
+    <div id="view-convert" style="display:block;">
+      <!-- 2. 中间：大卡片上传拖拽区 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="dropzone">
+          <div class="upload-icon-box">
+            <svg style="width:24px; height:24px;" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
+          </div>
+          <div class="drop-title">拖拽文件到此处，或点击选取文件</div>
+          <div class="drop-desc">支持 Word、Excel、PPT、PDF、JPG、PNG、WEBP 等格式互转（单文件支持 500MB）</div>
+          <button class="btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>
+            选择本地文件
+          </button>
+        </div>
+      </div>
+
+      <!-- 批量操作控制条 -->
+      <div class="batch-bar">
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+          <span style="font-weight:600; color:var(--foreground);">共 3 个文件</span>
+          <span style="padding:2px 8px; border-radius:var(--radii-sm); font-size:11px; font-weight:600; background:rgba(8, 120, 104, 0.1); color:var(--brand-green); font-family: 'JetBrains Mono', monospace;">已完成 1</span>
+          <span style="padding:2px 8px; border-radius:var(--radii-sm); font-size:11px; font-weight:500; background:var(--surface-secondary); color:var(--muted-foreground); border:1px solid var(--border); font-family: 'JetBrains Mono', monospace;">待处理 2</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn-primary">
+            <svg style="width:12px; height:12px; fill:currentColor;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            一键全部转换
+          </button>
+          <button class="btn-success">
+            <svg style="width:13px; height:13px;" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+            一键打包下载 (ZIP)
+          </button>
+          <button class="btn-delete" title="清空全部">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. 任务列表 -->
+      <div class="list-section">
+        <!-- 任务项 1：待转换，带目标格式选择 -->
+        <div class="file-item">
+          <div class="file-left">
+            <div class="file-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <div class="file-info">
+              <div class="file-name-row">
+                <span class="file-name">2026年度业务规划总览.docx</span>
+                <span class="file-tag">3.8 MB</span>
+              </div>
+              <div style="font-size:12px; color:var(--muted-foreground);">等待开始转换</div>
+            </div>
+          </div>
+          <div class="file-actions">
+            <div class="format-picker">
+              <span style="color:var(--muted-foreground); font-size:11px;">转为</span>
+              <select>
+                <option>PDF</option>
+                <option>TXT</option>
+              </select>
+            </div>
+            <button class="btn-primary">转换</button>
+            <button class="btn-delete" title="删除"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+          </div>
+        </div>
+
+        <!-- 任务项 2：正在解析中 (带进度条与目标显示) -->
+        <div class="file-item">
+          <div class="file-left">
+            <div class="file-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <div class="file-info">
+              <div class="file-name-row" style="justify-content: space-between;">
+                <span class="file-name">产品用户体验调研报告_v2.pdf</span>
+                <span style="font-size: 11px; color: var(--foreground); font-family: 'JetBrains Mono', monospace; font-weight:600;">72%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+          <div class="file-actions">
+            <div class="format-picker">
+              <span style="color:var(--muted-foreground); font-size:11px;">目标:</span>
+              <span style="font-weight:600; font-family:'JetBrains Mono', monospace;">DOCX</span>
+            </div>
+            <button class="btn-delete" title="取消"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          </div>
+        </div>
+
+        <!-- 任务项 3：已转换完成 -->
+        <div class="file-item">
+          <div class="file-left">
+            <div class="file-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <div class="file-info">
+              <div class="file-name-row">
+                <span class="file-name">Q3季度财务数据汇总表.pdf</span>
+                <span class="file-tag">4.2 MB</span>
+              </div>
+              <div class="file-status-success">
+                <svg style="width:13px; height:13px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                转换完成: Q3季度财务数据汇总表.xlsx
+              </div>
+            </div>
+          </div>
+          <div class="file-actions">
+            <button class="btn-success">
+              <svg style="width:13px; height:13px;" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              下载文件
+            </button>
+            <button class="btn-delete" title="删除"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部特性卡片 -->
+      <div class="features-row">
+        <div class="feature-item">
+          <h4>Gotenberg 原生转 PDF</h4>
+          <p>基于 Chromium 与 LibreOffice 容器核心，100% 保持段落、表格与矢量数学公式精度。</p>
+        </div>
+        <div class="feature-item">
+          <h4>对象级 PDF 转 Word</h4>
+          <p>提取真实段落、行内样式及层叠表格结构，绝非简单的低劣全屏截图伪装。</p>
+        </div>
+        <div class="feature-item">
+          <h4>高分辨率光栅渲染</h4>
+          <p>支持 150~600 DPI 超清多页渲染，自动打包 ZIP 或智能拼接合成。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 视图 2：PDF 专属工具箱 (8 项工具) -->
+    <div id="view-tools" style="display:none;">
+      <div class="tools-grid-layout">
+        <!-- 左侧工具菜单 -->
+        <div class="tools-menu">
+          <button class="tool-tab-btn active" onclick="pickTool('merge', this)">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            <span>合并 PDF (Merge)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('split', this)">
+            <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+            <span>拆分提取 (Split)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('rotate', this)">
+            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
+            <span>页面旋转 (Rotate)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('compress', this)">
+            <svg viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <span>体积压缩 (Compress)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('security', this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>加密解密 (Security)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('watermark', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>文字水印 (Watermark)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('searchable', this)">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>可搜索 PDF (OCR)</span>
+          </button>
+          <button class="tool-tab-btn" onclick="pickTool('ocr', this)">
+            <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+            <span>OCR 提取文字 (Word)</span>
+          </button>
+        </div>
+
+        <!-- 右侧具体工具详情面板 -->
+        <div class="tool-detail-box">
+          <div style="margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border);">
+            <h2 id="current-tool-title" style="font-size:16px; font-weight:700; color:var(--foreground);">文档批量合并 (Merge)</h2>
+            <p id="current-tool-desc" style="font-size:12px; color:var(--muted-foreground); margin-top:4px;">将多个 PDF 文件按先后顺序合成一个完整的文档。</p>
+          </div>
+
+          <div class="form-group-item">
+            <label class="form-item-label">选择待处理文件</label>
+            <div style="border:2px dashed var(--border); border-radius:var(--radii-md); padding:24px; text-align:center; background:var(--surface-card); cursor:pointer;">
+              <div style="font-size:13px; font-weight:600; color:var(--foreground);">点击添加 PDF 文件（已选 2 个）</div>
+              <div style="font-size:11px; color:var(--muted-foreground); margin-top:4px; font-family:'JetBrains Mono', monospace;">1. 封面目录.pdf &bull; 2. 报告正文.pdf</div>
+            </div>
+          </div>
+
+          <!-- 动态参数表单区域 -->
+          <div id="tool-dynamic-options"></div>
+
+          <div style="margin-top:24px; display:flex; align-items:center; gap:12px;">
+            <button class="btn-primary" style="padding:9px 20px;">
+              <svg style="width:13px; height:13px; fill:currentColor;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              立即开始处理
+            </button>
+            <span id="tool-exec-tip" style="font-size:12px; color:var(--muted-foreground);">准备就绪</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全局偏好设置弹窗 (SettingsModal) -->
+    <div id="settings-popup">
+      <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+          <h3 style="font-size:15px; font-weight:700; color:var(--foreground);">全局偏好设置</h3>
+          <button class="btn-delete" onclick="toggleSettings(false)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="form-group-item">
+          <label class="form-item-label">PDF 转图片基准清晰度 (DPI)</label>
+          <select class="form-item-select" style="max-width:100%;">
+            <option>300 DPI (高清标准推荐)</option>
+            <option>150 DPI (轻巧快速)</option>
+            <option>600 DPI (超高清打印级)</option>
+          </select>
+        </div>
+        <div class="form-group-item">
+          <label class="form-item-label">单文件体积上限 (MB)</label>
+          <input type="number" class="form-item-input" style="max-width:100%;" value="500" />
+        </div>
+        <div class="form-group-item">
+          <label class="form-item-label">成功任务产物自动销毁时间</label>
+          <select class="form-item-select" style="max-width:100%;">
+            <option>1 小时后自动清除 (保护隐私)</option>
+            <option>24 小时后清除</option>
+            <option>72 小时后清除</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px; padding-top:14px; border-top:1px solid var(--border);">
+          <button class="btn-secondary" onclick="toggleSettings(false)">取消</button>
+          <button class="btn-primary" onclick="toggleSettings(false)">保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      LocalPDF · 纯本地运行 · 零云端数据上传 · 强隐私隔离
+    </footer>
+
+  </div>
+
+  <script>
+    function showTab(tab) {
+      const isConvert = tab === 'convert';
+      document.getElementById('view-convert').style.display = isConvert ? 'block' : 'none';
+      document.getElementById('view-tools').style.display = isConvert ? 'none' : 'block';
+      document.getElementById('tab-btn-convert').className = 'tab-pill ' + (isConvert ? 'active' : '');
+      document.getElementById('tab-btn-tools').className = 'tab-pill ' + (!isConvert ? 'active' : '');
+    }
+
+    function toggleSettings(show) {
+      document.getElementById('settings-popup').style.display = show ? 'flex' : 'none';
+    }
+
+    const toolDict = {
+      merge: {
+        t: '文档批量合并 (Merge)',
+        d: '将多个 PDF 文件按指定先后顺序合成一个完整的文档。支持任意页数合并。',
+        html: `
+          <div style="font-size:12px; color:var(--muted-foreground); line-height:1.6; background:var(--surface-secondary); padding:14px; border-radius:var(--radii-md); border:1px solid var(--border);">
+            将按照选定文件的排列顺序依次拼接为一个完整的 PDF。支持跨页面尺寸合成，100% 保持清晰矢量渲染。
+          </div>
+        `
+      },
+      split: {
+        t: '页面分割提取 (Split)',
+        d: '提取指定页码范围或将每页拆分为独立单页 PDF。',
+        html: `
+          <div class="form-group-item">
+            <label class="form-item-label">拆分模式</label>
+            <div style="display:flex; gap:18px; margin-bottom:12px; font-size:12px; font-weight:500;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="split_mode" value="ranges" checked onchange="toggleSplitInput(true)" style="accent-color:var(--foreground);"> 提取指定范围
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="split_mode" value="each" onchange="toggleSplitInput(false)" style="accent-color:var(--foreground);"> 每页独立拆分为 ZIP 包
+              </label>
+            </div>
+          </div>
+          <div class="form-group-item" id="split-range-box">
+            <label class="form-item-label">提取页码范围 (例如: 1, 3-5, 8)</label>
+            <input type="text" class="form-item-input" value="1-3" placeholder="例如: 1, 3-5" />
+            <p style="font-size:11px; color:var(--muted-foreground); margin-top:4px;">支持逗号分隔单个页码与连字符范围，超出总页数会自动忽略</p>
+          </div>
+        `
+      },
+      rotate: {
+        t: '页面方向旋转 (Rotate)',
+        d: '纠正页面颠倒或横向摆放问题，支持全选或特定页。',
+        html: `
+          <div class="form-group-item">
+            <label class="form-item-label">顺时针旋转角度</label>
+            <select class="form-item-select">
+              <option value="90">90° (顺时针向右旋转)</option>
+              <option value="180">180° (上下颠倒翻转)</option>
+              <option value="270">270° (逆时针向左旋转)</option>
+            </select>
+          </div>
+          <div class="form-group-item">
+            <label class="form-item-label">目标页码 (填写 all 或具体页如 1, 3)</label>
+            <input type="text" class="form-item-input" value="all" placeholder="all" />
+          </div>
+        `
+      },
+      compress: {
+        t: '无损体积压缩 (Compress)',
+        d: '通过清理冗余嵌入字体与优化内嵌图片，大幅减小附件体积。',
+        html: `
+          <div class="form-group-item">
+            <label class="form-item-label">压缩模式与画质平衡</label>
+            <select class="form-item-select">
+              <option value="medium" selected>推荐压缩 (平衡文件体积与清晰度)</option>
+              <option value="low">轻度压缩 (保留最高画质，仅清理冗余数据)</option>
+              <option value="high">强力压缩 (大幅压缩图片，适合邮件限制)</option>
+            </select>
+          </div>
+        `
+      },
+      security: {
+        t: '文档加密与解密 (Security)',
+        d: '使用工业级 AES-256 算法加解密，保护商业机密。',
+        html: `
+          <div class="form-group-item">
+            <label class="form-item-label">安全操作类型</label>
+            <div style="display:flex; gap:18px; margin-bottom:12px; font-size:12px; font-weight:500;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="sec_action" value="encrypt" checked onchange="toggleSecLabel(true)" style="accent-color:var(--foreground);"> 添加密码加密 (AES-256)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="sec_action" value="decrypt" onchange="toggleSecLabel(false)" style="accent-color:var(--foreground);"> 解密并移除密码
+              </label>
+            </div>
+          </div>
+          <div class="form-group-item">
+            <label class="form-item-label" id="sec-pwd-label">设置打开密码</label>
+            <input type="password" class="form-item-input" placeholder="输入口令密码..." value="MySecret2026!" />
+          </div>
+        `
+      },
+      watermark: {
+        t: '文字水印安全防伪 (Watermark)',
+        d: '添加自定义半透明防伪文字水印，支持调节透明度与倾角。',
+        html: `
+          <div class="form-group-item">
+            <label class="form-item-label">水印文字内容</label>
+            <input type="text" class="form-item-input" value="机密文件 请勿外传" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:420px;" class="form-group-item">
+            <div>
+              <label class="form-item-label" id="label-opacity">透明度 (25%)</label>
+              <input type="range" min="0.1" max="0.8" step="0.05" value="0.25" style="width:100%; accent-color:var(--foreground);" oninput="document.getElementById('label-opacity').innerText='透明度 (' + Math.round(this.value*100) + '%)'" />
+            </div>
+            <div>
+              <label class="form-item-label" id="label-rotation">倾斜角 (45°)</label>
+              <input type="range" min="0" max="90" step="15" value="45" style="width:100%; accent-color:var(--foreground);" oninput="document.getElementById('label-rotation').innerText='倾斜角 (' + this.value + '°)'" />
+            </div>
+          </div>
+        `
+      },
+      searchable: {
+        t: '可搜索双层 PDF (OCR)',
+        d: '扫描件叠加隐形文字层，原图视觉无损，同时支持划选复制与全文检索。',
+        html: `
+          <div style="font-size:12px; color:var(--muted-foreground); line-height:1.6; background:var(--surface-secondary); padding:12px; border-radius:var(--radii-md); border:1px solid var(--border); margin-bottom:16px;">
+            使用本地 OCR 引擎识别文字，并在原位精确叠加一层隐形文字图层。生成后的 PDF 外观无任何变化，但支持鼠标直接划选文本与 Ctrl+F 搜索！
+          </div>
+          <div class="form-group-item">
+            <label class="form-item-label">扫描识别精度 (DPI)</label>
+            <select class="form-item-select">
+              <option value="200" selected>200 DPI (推荐，平衡速度与文字精准度)</option>
+              <option value="150">150 DPI (快速处理)</option>
+              <option value="300">300 DPI (超高清精确度)</option>
+            </select>
+          </div>
+        `
+      },
+      ocr: {
+        t: '扫描件提取文档 (OCR to Word)',
+        d: '从扫描件或图片中直接提取段落与表格，导出为可编辑的 Word / TXT。',
+        html: `
+          <div style="font-size:12px; color:var(--muted-foreground); line-height:1.6; background:var(--surface-secondary); padding:12px; border-radius:var(--radii-md); border:1px solid var(--border); margin-bottom:16px;">
+            提取图片或扫描件中的全部中英文文字，自动分析并保留段落排版与分块结构。
+          </div>
+          <div class="form-group-item">
+            <label class="form-item-label">导出目标格式</label>
+            <div style="display:flex; gap:18px; font-size:12px; font-weight:500;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="ocr_format" value="docx" checked style="accent-color:var(--foreground);"> 导出为 Word (.docx)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="ocr_format" value="txt" style="accent-color:var(--foreground);"> 导出为纯文本 (.txt)
+              </label>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    function pickTool(k, el) {
+      document.querySelectorAll('.tool-tab-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      const item = toolDict[k];
+      document.getElementById('current-tool-title').innerText = item.t;
+      document.getElementById('current-tool-desc').innerText = item.d;
+      document.getElementById('tool-dynamic-options').innerHTML = item.html;
+    }
+
+    function toggleSplitInput(isRange) {
+      document.getElementById('split-range-box').style.display = isRange ? 'block' : 'none';
+    }
+
+    function toggleSecLabel(isEncrypt) {
+      document.getElementById('sec-pwd-label').innerText = isEncrypt ? '设置打开密码' : '输入原密码以解除';
+    }
+
+    // 初始化默认加载 merge 选项
+    pickTool('merge', document.querySelector('.tool-tab-btn.active'));
+  </script>
+</body>
+</html>
