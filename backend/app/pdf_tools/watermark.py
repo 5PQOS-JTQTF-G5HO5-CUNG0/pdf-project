@@ -49,8 +49,8 @@ def add_watermark(
             p = fitz.Point(center_x - text_len / 2, center_y)
             tw.append(p, text, fontsize=font_size, font=font)
             
-            # 倾斜变换写入
-            tw.write_text(page, morph=(center_x, center_y, fitz.Matrix(rotation)))
+            # 倾斜变换写入 (morph 必须为 (Point, Matrix) 二元组)
+            tw.write_text(page, morph=(fitz.Point(center_x, center_y), fitz.Matrix(rotation)))
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         doc.save(str(output_path), garbage=4, deflate=True)
