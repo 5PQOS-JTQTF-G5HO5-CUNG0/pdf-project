@@ -20,6 +20,7 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/data
+      - ./backend/app:/app/app
     environment:
       - GOTENBERG_URL=http://gotenberg:3000
       - DATA_DIR=/data

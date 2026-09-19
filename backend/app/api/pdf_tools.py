@@ -14,6 +14,7 @@ from app.pdf_tools.rotate import rotate_pdf
 from app.pdf_tools.compress import compress_pdf
 from app.pdf_tools.security import encrypt_pdf, decrypt_pdf
 from app.pdf_tools.watermark import add_watermark
+from app.pdf_tools.remove_watermark import remove_watermark
 from app.ocr.searchable_pdf import create_searchable_pdf
 from app.ocr.ocr_to_doc import ocr_to_docx, ocr_extract_text
 
@@ -66,6 +67,28 @@ def run_pdf_tool_task(task_id: str, action: str, input_paths: List[Path], option
             color = options.get("color", "#888888")
             out_file = output_dir / f"{base_name}_watermarked.pdf"
             actual_output_path = add_watermark(primary_input, out_file, text, font_size, opacity, rotation, color)
+        elif action in ("remove_watermark", "remove-watermark", "unwatermark"):
+            mode = options.get("mode", "text")
+            keywords = options.get("keywords") or options.get("text", "")
+            case_sensitive = bool(options.get("case_sensitive", False))
+            fill_mode = options.get("fill_mode", "none")
+            clean_artifacts = bool(options.get("clean_artifacts", True))
+            clean_image_watermark = bool(options.get("clean_image_watermark", False))
+            area_type = options.get("area_type")
+            area_ratio = float(options.get("area_ratio", 0.08))
+            out_file = output_dir / f"{base_name}_cleaned.pdf"
+            actual_output_path = remove_watermark(
+                primary_input,
+                out_file,
+                mode=mode,
+                keywords=keywords,
+                case_sensitive=case_sensitive,
+                fill_mode=fill_mode,
+                clean_artifacts=clean_artifacts,
+                clean_image_watermark=clean_image_watermark,
+                area_type=area_type,
+                area_ratio=area_ratio
+            )
         elif action == "searchable":
             out_file = output_dir / f"{base_name}_searchable.pdf"
             actual_output_path = create_searchable_pdf(primary_input, out_file)
@@ -104,6 +127,7 @@ async def handle_pdf_tool(
     action = action.lower()
     valid_actions = {
         "merge", "split", "rotate", "compress", "encrypt", "decrypt", "watermark",
+        "remove_watermark", "remove-watermark", "unwatermark",
         "searchable", "ocr"
     }
     if action not in valid_actions:

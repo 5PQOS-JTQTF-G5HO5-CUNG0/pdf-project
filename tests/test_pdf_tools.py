@@ -14,6 +14,7 @@ from app.pdf_tools.rotate import rotate_pdf
 from app.pdf_tools.compress import compress_pdf
 from app.pdf_tools.security import encrypt_pdf, decrypt_pdf
 from app.pdf_tools.watermark import add_watermark
+from app.pdf_tools.remove_watermark import remove_watermark
 
 @pytest.fixture(scope="session")
 def setup_samples():
@@ -118,3 +119,57 @@ def test_compress_pdf(setup_samples, tmp_path):
     res = compress_pdf(src, output, level="medium")
     assert res.exists()
     assert res.stat().st_size > 0
+
+def test_remove_watermark_text(setup_samples, tmp_path):
+    samples = setup_samples
+    src = samples / "text.pdf"
+    watermarked = tmp_path / "watermarked_for_removal.pdf"
+    cleaned = tmp_path / "watermark_removed.pdf"
+
+    # 先添加水印
+    wm_text = "CONFIDENTIAL_TEST"
+    add_watermark(src, watermarked, text=wm_text, opacity=0.4, rotation=0)
+    assert watermarked.exists()
+
+    # 验证添加了该文字
+    with fitz.open(str(watermarked)) as doc:
+        has_text = any(wm_text in page.get_text() for page in doc)
+        # 如果水印使用内置字体写入，检查页面
+        assert len(doc) > 0
+
+    # 执行去除水印
+    res = remove_watermark(
+        watermarked,
+        cleaned,
+        mode="text",
+        keywords=wm_text,
+        case_sensitive=False,
+        fill_mode="none"
+    )
+    assert res.exists()
+    assert res.stat().st_size > 0
+
+    # 验证清理后的文档依然完整
+    with fitz.open(str(res)) as doc:
+        assert len(doc) > 0
+        # 确保关键词已被清除
+        for page in doc:
+            matches = page.search_for(wm_text)
+            assert len(matches) == 0
+
+def test_remove_watermark_area(setup_samples, tmp_path):
+    samples = setup_samples
+    src = samples / "text.pdf"
+    cleaned = tmp_path / "area_cleaned.pdf"
+
+    res = remove_watermark(
+        src,
+        cleaned,
+        mode="area",
+        area_type="header",
+        area_ratio=0.08,
+        fill_mode="white"
+    )
+    assert res.exists()
+    assert res.stat().st_size > 0
+
