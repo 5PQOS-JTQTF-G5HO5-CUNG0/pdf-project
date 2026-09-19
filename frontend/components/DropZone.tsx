@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { UploadCloud, CheckCircle2 } from "lucide-react";
+import { UploadCloud, CheckCircle2, ArrowUpRight } from "lucide-react";
 
 interface DropZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -12,7 +12,7 @@ interface DropZoneProps {
 export const DropZone: React.FC<DropZoneProps> = ({
   onFilesSelected,
   accept = ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.jpg,.jpeg,.png,.webp",
-  subText = "支持 Word、Excel、PPT、PDF、JPG、PNG、WEBP 等格式（最大 500 MB）",
+  subText = "支持 Word、Excel、PPT、PDF 以及各类高清图片（单文件最大 500 MB）",
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,63 +38,67 @@ export const DropZone: React.FC<DropZoneProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       onFilesSelected(Array.from(e.target.files));
-      e.target.value = ""; // 清空以便支持重复选取同名文件
+      e.target.value = "";
     }
   };
 
   return (
-    <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
-      className={`border border-dashed rounded-xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-150 ease-out bg-surface-1 group relative overflow-hidden ${
-        isDragging
-          ? "border-primary bg-surface-2 ring-1 ring-primary/30"
-          : "border-hairline hover:border-hairline-strong hover:bg-surface-2/40"
-      }`}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept={accept}
-        onChange={handleInputChange}
-        className="hidden"
-      />
+    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-black/[0.04] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] transition-all">
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
+          isDragging
+            ? "border-[#0071e3] bg-[#0071e3]/[0.03] scale-[0.99]"
+            : "border-[#e5e5e7] hover:border-[#86868b] hover:bg-[#fafafa]"
+        }`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept={accept}
+          onChange={handleInputChange}
+          className="hidden"
+        />
 
-      {/* 微妙的顶部环境微光 (Linear ambient highlight) */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent pointer-events-none" />
+        {/* 苹果风格中心图标 */}
+        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-b from-[#f5f5f7] to-[#e8e8ed] border border-black/[0.04] flex items-center justify-center text-[#1d1d1f] shadow-sm group-hover:scale-105 transition-transform">
+          <UploadCloud className="w-6 h-6 text-[#0071e3]" strokeWidth={2} />
+        </div>
 
-      {/* 拖拽中心图标容器 */}
-      <div className="w-11 h-11 mx-auto mb-3.5 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-ink-subtle group-hover:text-primary group-hover:border-primary/40 group-hover:bg-surface-3 transition-all duration-150">
-        <UploadCloud className="w-5 h-5" strokeWidth={1.75} />
-      </div>
+        <h3 className="text-base sm:text-lg font-semibold text-[#1d1d1f] tracking-tight mb-1.5">
+          将文件拖入此处，或直接点击选取
+        </h3>
+        <p className="text-xs sm:text-sm text-[#86868b] max-w-md mx-auto leading-relaxed mb-5">
+          {subText}
+        </p>
 
-      <h3 className="text-sm font-medium text-ink tracking-tight mb-1">
-        拖拽文件到此处，或{" "}
-        <span className="text-primary group-hover:text-primary-hover transition-colors underline underline-offset-4 decoration-primary/40">
-          点击选取文件
-        </span>
-      </h3>
-      <p className="text-xs text-ink-subtle max-w-md mx-auto leading-relaxed">
-        {subText}
-      </p>
+        <button
+          type="button"
+          className="px-5 py-2.5 rounded-full bg-[#1d1d1f] hover:bg-[#000000] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+        >
+          选取本地文件
+          <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2} />
+        </button>
 
-      {/* 底部特性 micro-badges */}
-      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 text-[11px] text-ink-tertiary">
-        <span className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.75} />
-          多文件并行处理
-        </span>
-        <span className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.75} />
-          本地容器隐私隔离
-        </span>
-        <span className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.75} />
-          定时自动物理销毁
-        </span>
+        {/* 底部特性胶囊徽章 */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-8 pt-6 border-t border-black/[0.04] w-full text-xs text-[#86868b]">
+          <span className="flex items-center gap-1.5 font-medium px-3 py-1 rounded-full bg-[#f5f5f7]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#34c759]" strokeWidth={2} />
+            并行高速处理
+          </span>
+          <span className="flex items-center gap-1.5 font-medium px-3 py-1 rounded-full bg-[#f5f5f7]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#34c759]" strokeWidth={2} />
+            端侧数据物理隔绝
+          </span>
+          <span className="flex items-center gap-1.5 font-medium px-3 py-1 rounded-full bg-[#f5f5f7]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#34c759]" strokeWidth={2} />
+            沙箱自动销毁
+          </span>
+        </div>
       </div>
     </div>
   );

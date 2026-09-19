@@ -50,22 +50,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isBusy = item.status === "pending" || item.status === "processing";
 
   return (
-    <div className="bg-surface-1 hover:bg-surface-2/40 border border-hairline hover:border-hairline-strong rounded-xl p-3.5 sm:p-4 transition-all duration-150 ease-out group">
+    <div className="bg-white hover:border-black/10 border border-black/[0.04] rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] group">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         {/* 左侧：文件信息与图标 */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-lg bg-surface-2 border border-hairline flex items-center justify-center text-ink-muted group-hover:text-primary group-hover:border-primary/40 transition-colors shrink-0">
-            <FileText className="w-4 h-4" strokeWidth={1.75} />
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="w-11 h-11 rounded-xl bg-[#f5f5f7] border border-black/[0.03] flex items-center justify-center text-[#1d1d1f] shrink-0 group-hover:scale-105 transition-transform">
+            <FileText className="w-5 h-5 text-[#1d1d1f]" strokeWidth={1.8} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span
-                className="text-sm font-medium text-ink tracking-tight truncate max-w-[280px] sm:max-w-md"
+                className="text-sm font-semibold text-[#1d1d1f] tracking-tight truncate max-w-[260px] sm:max-w-md"
                 title={item.file.name}
               >
                 {item.file.name}
               </span>
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-2 border border-hairline text-ink-subtle font-mono shrink-0">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f5f5f7] text-[#86868b] font-mono shrink-0">
                 {formatBytes(item.file.size)}
               </span>
             </div>
@@ -73,23 +73,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* 状态文字或错误提示 */}
             <div className="mt-1 flex items-center gap-2 text-xs">
               {item.status === "idle" && (
-                <span className="text-ink-tertiary">等待开始转换</span>
+                <span className="text-[#86868b]">就绪，等待转换</span>
               )}
               {isBusy && (
-                <span className="text-primary flex items-center gap-1.5 font-medium">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2} />
-                  正在处理中 ({item.progress}%)
+                <span className="text-[#0071e3] flex items-center gap-1.5 font-medium">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0071e3]" strokeWidth={2} />
+                  正在转换 ({item.progress}%)
                 </span>
               )}
               {item.status === "completed" && (
-                <span className="text-emerald-400 flex items-center gap-1.5 font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" strokeWidth={2} />
+                <span className="text-[#248a3d] flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#34c759]" strokeWidth={2} />
                   转换完成: {item.outputFilename}
                 </span>
               )}
               {item.status === "failed" && (
                 <span
-                  className="text-rose-400 flex items-center gap-1.5 truncate font-medium"
+                  className="text-[#ff3b30] flex items-center gap-1.5 truncate font-medium"
                   title={item.errorMessage}
                 >
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
@@ -100,33 +100,33 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         </div>
 
-        {/* 右侧：目标格式选择与操作按钮 */}
-        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
-          {/* 目标格式选择 */}
-          <div className="flex items-center gap-1.5 bg-surface-2 border border-hairline hover:border-hairline-strong px-2.5 py-1 rounded-md transition-colors">
-            <span className="text-[11px] text-ink-tertiary">转为</span>
-            <ArrowRight className="w-3 h-3 text-ink-tertiary" />
+        {/* 右侧：目标格式胶囊与操作按钮 */}
+        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          {/* 格式选择胶囊 (苹果原生风格) */}
+          <div className="flex items-center gap-1.5 bg-[#f5f5f7] border border-black/[0.04] rounded-full px-3 py-1.5">
+            <span className="text-[11px] text-[#86868b] font-medium">转为</span>
+            <ArrowRight className="w-3 h-3 text-[#86868b]" />
             <select
               value={item.targetFormat}
               disabled={isBusy || item.status === "completed"}
               onChange={(e) => onTargetChange(item.id, e.target.value)}
-              className="bg-transparent text-xs font-semibold text-primary hover:text-primary-hover focus:outline-none cursor-pointer uppercase font-mono transition-colors disabled:opacity-50"
+              className="bg-transparent text-xs font-semibold text-[#1d1d1f] focus:outline-none cursor-pointer uppercase font-mono disabled:opacity-50"
             >
               {item.availableTargets.map((t) => (
-                <option key={t} value={t} className="bg-surface-3 text-ink">
+                <option key={t} value={t} className="bg-white text-black">
                   {t.toUpperCase()}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* 按钮群 */}
+          {/* 动作按钮 */}
           {item.status === "idle" && (
             <button
               onClick={() => onStartSingle(item.id)}
-              className="px-3 py-1.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] flex items-center gap-1.5"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-medium transition-all shadow-sm active:scale-95"
             >
-              <Sparkles className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
               转换
             </button>
           )}
@@ -135,9 +135,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <a
               href={getDownloadUrl(item.taskId, item.outputFilename)}
               download={item.outputFilename}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 text-xs font-medium transition-all duration-150"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#34c759]/10 hover:bg-[#34c759]/20 text-[#248a3d] border border-[#34c759]/20 text-xs font-semibold transition-all active:scale-95 shadow-xs"
             >
-              <Download className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <Download className="w-3.5 h-3.5" strokeWidth={2} />
               下载
             </a>
           )}
@@ -145,10 +145,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {item.status === "failed" && (
             <button
               onClick={() => onRetry(item.id)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-surface-2 hover:bg-surface-3 text-ink-muted hover:text-ink border border-hairline hover:border-hairline-strong text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 text-[#ff3b30] text-xs font-medium transition-all active:scale-95"
               title="重试"
             >
-              <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <RotateCcw className="w-3 h-3" strokeWidth={2} />
               重试
             </button>
           )}
@@ -156,19 +156,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <button
             onClick={() => onRemove(item.id)}
             disabled={isBusy}
-            className="p-1.5 rounded-md text-ink-tertiary hover:text-rose-400 hover:bg-surface-2 border border-transparent hover:border-hairline transition-colors disabled:opacity-30"
-            title="移除"
+            className="w-8 h-8 rounded-full bg-black/[0.04] hover:bg-rose-50 hover:text-[#ff3b30] text-[#86868b] flex items-center justify-center transition-colors disabled:opacity-30"
+            title="移除此项"
           >
-            <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+            <Trash2 className="w-4 h-4" strokeWidth={1.8} />
           </button>
         </div>
       </div>
 
-      {/* 进度条动画 */}
+      {/* 极细 3px 苹果风格进度条 */}
       {isBusy && (
-        <div className="w-full h-1 bg-surface-2 rounded-full mt-3 overflow-hidden">
+        <div className="w-full h-1 bg-[#f5f5f7] rounded-full mt-3 overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-300 rounded-full shadow-[0_0_8px_rgba(94,106,210,0.6)]"
+            className="h-full bg-[#0071e3] transition-all duration-300 rounded-full"
             style={{ width: `${item.progress}%` }}
           />
         </div>
